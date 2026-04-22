@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LDA Pipeline Flow — lda_pipeline_full.py</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f8f7f4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 15px;
+    font-weight: 500;
+    color: #3d3d3a;
+    margin-bottom: 4px;
+    letter-spacing: 0.01em;
+  }
+  p.sub {
+    font-size: 12px;
+    color: #73726c;
+    margin-bottom: 1.5rem;
+  }
+  .card {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 720px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .th { font-size: 14px; font-weight: 500; fill: #2c2c2a; }
+  .ts { font-size: 12px; font-weight: 400; fill: #5f5e5a; }
+
+  /* color ramps */
+  .c-gray  rect, .c-gray  circle { fill: #F1EFE8; stroke: #888780; }
+  .c-teal  rect, .c-teal  circle { fill: #E1F5EE; stroke: #0F6E56; }
+  .c-purple rect,.c-purple circle { fill: #EEEDFE; stroke: #534AB7; }
+  .c-coral rect, .c-coral circle  { fill: #FAECE7; stroke: #993C1D; }
+  .c-amber rect, .c-amber circle  { fill: #FAEEDA; stroke: #854F0B; }
+  .c-blue  rect, .c-blue  circle  { fill: #E6F1FB; stroke: #185FA5; }
+
+  .c-gray  .th { fill: #444441; } .c-gray  .ts { fill: #5F5E5A; }
+  .c-teal  .th { fill: #085041; } .c-teal  .ts { fill: #0F6E56; }
+  .c-purple .th { fill: #3C3489;} .c-purple .ts { fill: #534AB7; }
+  .c-coral  .th { fill: #712B13;} .c-coral  .ts { fill: #993C1D; }
+  .c-amber  .th { fill: #633806;} .c-amber  .ts { fill: #854F0B; }
+  .c-blue   .th { fill: #0C447C;} .c-blue   .ts { fill: #185FA5; }
+
+  .arr { stroke: #888780; stroke-width: 1.5; fill: none; }
+  line.arr { stroke: #888780; }
+  line[stroke-dasharray] { stroke: #b4b2a9; }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1e1e1c; }
+    .card { background: #2c2c2a; border-color: rgba(255,255,255,0.1); box-shadow: none; }
+    h1 { color: #c2c0b6; } p.sub { color: #888780; }
+    .th { fill: #d3d1c7; } .ts { fill: #b4b2a9; }
+    .c-gray  rect { fill: #2C2C2A; stroke: #888780; }
+    .c-teal  rect { fill: #04342C; stroke: #5DCAA5; }
+    .c-purple rect{ fill: #26215C; stroke: #AFA9EC; }
+    .c-coral  rect{ fill: #4A1B0C; stroke: #F0997B; }
+    .c-amber  rect{ fill: #412402; stroke: #EF9F27; }
+    .c-blue   rect{ fill: #042C53; stroke: #85B7EB; }
+    .c-gray  .th { fill: #D3D1C7; } .c-gray  .ts { fill: #B4B2A9; }
+    .c-teal  .th { fill: #9FE1CB; } .c-teal  .ts { fill: #5DCAA5; }
+    .c-purple .th { fill: #CECBF6;} .c-purple .ts { fill: #AFA9EC; }
+    .c-coral  .th { fill: #F5C4B3;} .c-coral  .ts { fill: #F0997B; }
+    .c-amber  .th { fill: #FAC775;} .c-amber  .ts { fill: #EF9F27; }
+    .c-blue   .th { fill: #B5D4F4;} .c-blue   .ts { fill: #85B7EB; }
+    .arr { stroke: #888780; }
+    line[stroke-dasharray] { stroke: #5f5e5a; }
+  }
+</style>
+</head>
+<body>
+<h1>LDA Pipeline — lda_pipeline_full.py</h1>
+<p class="sub">All 11 blocks · 500 funds × 997 assets · mutual fund similarity</p>
+<div class="card">
+<svg width="100%" viewBox="0 0 680 1620" role="img">
+<title>LDA pipeline full flow diagram</title>
+<desc>Flow diagram of lda_pipeline_full.py, covering all 11 blocks from data loading through final outputs</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- BLOCK 1: Config -->
+<g class="c-gray">
+  <rect x="200" y="20" width="280" height="54" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="42" text-anchor="middle" dominant-baseline="central">Block 1 — configuration</text>
+  <text class="ts" x="340" y="60" text-anchor="middle" dominant-baseline="central">K=30  α=0.1  β=0.01  N=200  S=15  c=1.0  T=0.15</text>
+</g>
+
+<line x1="340" y1="74" x2="340" y2="100" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 2: Step 1 Data Prep -->
+<g class="c-teal">
+  <rect x="120" y="100" width="440" height="110" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="122" text-anchor="middle" dominant-baseline="central">Block 2 — Step 1: data preparation</text>
+  <text class="ts" x="340" y="143" text-anchor="middle" dominant-baseline="central">Read CSV (14,459 rows)  →  drop noise cols (Num_Assets, Risky_Proportion, Risk_Free)</text>
+  <text class="ts" x="340" y="161" text-anchor="middle" dominant-baseline="central">Pivot long → wide  →  row-normalise (all rows sum to 1.0)</text>
+  <text class="ts" x="340" y="179" text-anchor="middle" dominant-baseline="central">Output: W matrix (500 funds × 997 assets)   sparsity 97.4%</text>
+</g>
+
+<line x1="340" y1="210" x2="340" y2="236" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 3: Step 2 Pseudo-counts -->
+<g class="c-teal">
+  <rect x="120" y="236" width="440" height="90" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="258" text-anchor="middle" dominant-baseline="central">Block 3 — Step 2: pseudo-count conversion</text>
+  <text class="ts" x="340" y="278" text-anchor="middle" dominant-baseline="central">C = round(W × N)  →  integer matrix (500 × 997)   N = 200</text>
+  <text class="ts" x="340" y="296" text-anchor="middle" dominant-baseline="central">Row sums ≈ N   Total tokens = 99,758   Invertible: C / rowsum → W</text>
+</g>
+
+<line x1="340" y1="326" x2="340" y2="352" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 4: Step 3 Hyperparams -->
+<g class="c-gray">
+  <rect x="120" y="352" width="440" height="90" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="374" text-anchor="middle" dominant-baseline="central">Block 4 — Step 3: hyperparameter rationale</text>
+  <text class="ts" x="340" y="394" text-anchor="middle" dominant-baseline="central">α=0.1 → sparse θ (low FP)   β=0.01 → sharp φ (interpretable themes)</text>
+  <text class="ts" x="340" y="412" text-anchor="middle" dominant-baseline="central">K=30 (10 sectors × 3 cap tiers)   N=200 resolves 0.5% weight diffs</text>
+</g>
+
+<line x1="340" y1="442" x2="340" y2="468" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 5: Step 4 Gibbs -->
+<g class="c-purple">
+  <rect x="80" y="468" width="520" height="140" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="492" text-anchor="middle" dominant-baseline="central">Block 5 — Step 4: collapsed Gibbs sampling</text>
+  <text class="ts" x="340" y="514" text-anchor="middle" dominant-baseline="central">Run S=15 independent chains (different random seeds)  ×  200 burn-in iters each</text>
+  <text class="ts" x="340" y="533" text-anchor="middle" dominant-baseline="central">lda C-extension (fast)  ·  each chain's final state = one posterior draw</text>
+  <text class="ts" x="340" y="552" text-anchor="middle" dominant-baseline="central">Smoothed formulas:  θ_dk = (n_dk + α) / (Σ_k n_dk + K·α)</text>
+  <text class="ts" x="340" y="570" text-anchor="middle" dominant-baseline="central">                    φ_kw = (n_kw + β) / (Σ_w n_kw + A·β)</text>
+  <text class="ts" x="340" y="588" text-anchor="middle" dominant-baseline="central">Output: 15 × (F×K) theta samples  +  15 × (K×A) phi samples   ~70s total</text>
+</g>
+<line x1="600" y1="540" x2="628" y2="540" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="632" y="536" dominant-baseline="central">step4_convergence.png</text>
+
+<line x1="340" y1="608" x2="340" y2="634" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 6: Step 5 Posterior -->
+<g class="c-purple">
+  <rect x="80" y="634" width="520" height="120" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="656" text-anchor="middle" dominant-baseline="central">Block 6 — Step 5: extract posterior distributions</text>
+  <text class="ts" x="340" y="677" text-anchor="middle" dominant-baseline="central">Stack samples:  theta_arr (15, 500, 30)   phi_arr (15, 30, 997)</text>
+  <text class="ts" x="340" y="695" text-anchor="middle" dominant-baseline="central">Compute posterior mean + std per fund   →   θ spread = uncertainty</text>
+  <text class="ts" x="340" y="713" text-anchor="middle" dominant-baseline="central">Theme label each topic k by dominant sector in top-5 φ assets</text>
+  <text class="ts" x="340" y="731" text-anchor="middle" dominant-baseline="central">Boxplot: low-uncertainty vs high-uncertainty fund posterior spread</text>
+</g>
+<line x1="600" y1="694" x2="628" y2="694" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="632" y="690" dominant-baseline="central">step5_posterior</text>
+<text class="ts" x="632" y="704" dominant-baseline="central">_spread.png</text>
+
+<line x1="340" y1="754" x2="340" y2="780" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 7: Step 6 JSD -->
+<g class="c-coral">
+  <rect x="80" y="780" width="520" height="130" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="802" text-anchor="middle" dominant-baseline="central">Block 7 — Step 6: pairwise JSD with uncertainty</text>
+  <text class="ts" x="340" y="822" text-anchor="middle" dominant-baseline="central">For each i: vectorise JSD over all j&gt;i simultaneously (NumPy broadcast)</text>
+  <text class="ts" x="340" y="840" text-anchor="middle" dominant-baseline="central">JSD(S,K) → (S,) per pair  →  mean_ij,  std_ij</text>
+  <text class="ts" x="340" y="858" text-anchor="middle" dominant-baseline="central">Conservative distance = mean_JSD + c × std_JSD   (c = 1.0)</text>
+  <text class="ts" x="340" y="876" text-anchor="middle" dominant-baseline="central">High uncertainty → inflate dist → less likely to cluster → fewer FP</text>
+  <text class="ts" x="340" y="894" text-anchor="middle" dominant-baseline="central">Output: dist_conservative (500×500)   124,750 pairs in &lt;1s</text>
+</g>
+<line x1="600" y1="848" x2="628" y2="848" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="632" y="840" dominant-baseline="central">step6_jsd_heatmap.png</text>
+<text class="ts" x="632" y="856" dominant-baseline="central">step6_uncertainty</text>
+<text class="ts" x="632" y="870" dominant-baseline="central">_dist.png</text>
+
+<line x1="340" y1="910" x2="340" y2="936" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 8: Step 7 Clustering -->
+<g class="c-coral">
+  <rect x="80" y="936" width="520" height="110" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="958" text-anchor="middle" dominant-baseline="central">Block 8 — Step 7: hierarchical clustering</text>
+  <text class="ts" x="340" y="978" text-anchor="middle" dominant-baseline="central">scipy linkage(complete) on conservative distance matrix</text>
+  <text class="ts" x="340" y="996" text-anchor="middle" dominant-baseline="central">Complete linkage: cost = MAX dist across two clusters  →  most conservative</text>
+  <text class="ts" x="340" y="1014" text-anchor="middle" dominant-baseline="central">Cut at T=0.15  →  381 clusters  (298 singletons expected &amp; acceptable)</text>
+  <text class="ts" x="340" y="1032" text-anchor="middle" dominant-baseline="central">No fund is forced into a cluster — unique funds stay singletons</text>
+</g>
+<line x1="600" y1="990" x2="628" y2="990" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="632" y="986" dominant-baseline="central">step7_dendrogram.png</text>
+
+<line x1="340" y1="1046" x2="340" y2="1072" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 9: Step 8 Evaluation -->
+<g class="c-amber">
+  <rect x="80" y="1072" width="520" height="150" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="1095" text-anchor="middle" dominant-baseline="central">Block 9 — Step 8: evaluation with synthetic labels</text>
+  <text class="ts" x="340" y="1117" text-anchor="middle" dominant-baseline="central">Ground truth: dominant sector per fund (from asset name encoding)</text>
+  <text class="ts" x="340" y="1135" text-anchor="middle" dominant-baseline="central">Vectorised confusion: boolean 500×500 matrices  →  TP / FP / FN / TN</text>
+  <text class="ts" x="340" y="1153" text-anchor="middle" dominant-baseline="central">Primary: Pairwise Precision = 0.91   (1.00 at T=0.02)</text>
+  <text class="ts" x="340" y="1171" text-anchor="middle" dominant-baseline="central">Threshold sweep T=0.02→0.30 fully vectorised in &lt;1s</text>
+  <text class="ts" x="340" y="1189" text-anchor="middle" dominant-baseline="central">Supplementary: ARI=0.056   NMI=0.700   FP sector confusion heatmap</text>
+</g>
+<line x1="600" y1="1150" x2="628" y2="1150" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)" fill="none"/>
+<text class="ts" x="632" y="1142" dominant-baseline="central">step8_threshold</text>
+<text class="ts" x="632" y="1156" dominant-baseline="central">_sweep.png</text>
+<text class="ts" x="632" y="1172" dominant-baseline="central">step8_sector</text>
+<text class="ts" x="632" y="1186" dominant-baseline="central">_confusion.png</text>
+
+<line x1="340" y1="1222" x2="340" y2="1248" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 10: Section 4 -->
+<g class="c-blue">
+  <rect x="80" y="1248" width="520" height="180" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="1272" text-anchor="middle" dominant-baseline="central">Block 10 — Section 4: using the results</text>
+
+  <rect x="96" y="1290" width="232" height="54" rx="5" stroke-width="0.5" fill="none" opacity="0.35"/>
+  <text class="ts" x="212" y="1308" text-anchor="middle" dominant-baseline="central" font-weight="500">4.1 Cluster assignments CSV</text>
+  <text class="ts" x="212" y="1326" text-anchor="middle" dominant-baseline="central">500 funds: cluster_id, sector,</text>
+  <text class="ts" x="212" y="1338" text-anchor="middle" dominant-baseline="central">dominant_theme, confidence</text>
+
+  <rect x="352" y="1290" width="232" height="54" rx="5" stroke-width="0.5" fill="none" opacity="0.35"/>
+  <text class="ts" x="468" y="1308" text-anchor="middle" dominant-baseline="central" font-weight="500">4.2 Theme interpretation CSV</text>
+  <text class="ts" x="468" y="1326" text-anchor="middle" dominant-baseline="central">30 topics × top-10 assets,</text>
+  <text class="ts" x="468" y="1338" text-anchor="middle" dominant-baseline="central">phi_mean, phi_std, sector label</text>
+
+  <rect x="96" y="1356" width="232" height="54" rx="5" stroke-width="0.5" fill="none" opacity="0.35"/>
+  <text class="ts" x="212" y="1374" text-anchor="middle" dominant-baseline="central" font-weight="500">4.3 Fold-in inference demo</text>
+  <text class="ts" x="212" y="1392" text-anchor="middle" dominant-baseline="central">New fund: Gibbs with φ fixed</text>
+  <text class="ts" x="212" y="1404" text-anchor="middle" dominant-baseline="central">No retraining, seconds</text>
+
+  <rect x="352" y="1356" width="232" height="54" rx="5" stroke-width="0.5" fill="none" opacity="0.35"/>
+  <text class="ts" x="468" y="1374" text-anchor="middle" dominant-baseline="central" font-weight="500">4.4 Synthetic portfolio</text>
+  <text class="ts" x="468" y="1392" text-anchor="middle" dominant-baseline="central">w = θ_desired @ φ_mean</text>
+  <text class="ts" x="468" y="1404" text-anchor="middle" dominant-baseline="central">Auto-sums to 1, no renorm</text>
+</g>
+
+<line x1="340" y1="1428" x2="340" y2="1454" class="arr" marker-end="url(#arrow)"/>
+
+<!-- BLOCK 11: Summary -->
+<g class="c-gray">
+  <rect x="120" y="1454" width="440" height="100" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="1476" text-anchor="middle" dominant-baseline="central">Block 11 — final summary + outputs manifest</text>
+  <text class="ts" x="340" y="1498" text-anchor="middle" dominant-baseline="central">Precision=0.91  Recall=0.030  ARI=0.056  NMI=0.700</text>
+  <text class="ts" x="340" y="1516" text-anchor="middle" dominant-baseline="central">7 PNG plots  ·  cluster_assignments.csv  ·  theme_interpretation.csv</text>
+  <text class="ts" x="340" y="1534" text-anchor="middle" dominant-baseline="central">Scale up: N→1000  BURN_IN→500  N_SAMPLES→50  (no other changes)</text>
+</g>
+
+<!-- Side accent bars -->
+<rect x="18" y="468" width="3" height="406" rx="1" fill="#7F77DD" opacity="0.6"/>
+<rect x="18" y="780" width="3" height="276" rx="1" fill="#D85A30" opacity="0.6"/>
+
+</svg>
+</div>
+</body>
+</html>
